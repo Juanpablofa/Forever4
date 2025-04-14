@@ -408,7 +408,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏪 Sistema de Pedidos Forever 4</h1>
+        <h1>🏪 Sistema de Pedidos Forever</h1>
         
         <div class="button-group">
             <button onclick="openImportModal()" class="btn-secondary">📥 Importar Excel</button>
@@ -2265,13 +2265,16 @@ function downloadOrderTemplate() {
                 const direccion = document.getElementById('direccion').value.trim();
    
 const fechaPedidoInput = document.getElementById('fechaPedido').value;
-    let fechaPedido;
-    
-    if (fechaPedidoInput) {
-        fechaPedido = new Date(fechaPedidoInput);
-    } else {
-        fechaPedido = new Date(); // Usar fecha actual si no se especifica
-    }
+let fechaPedido;
+
+if (fechaPedidoInput) {
+    // Ajustar la fecha para evitar problemas de zona horaria
+    const [year, month, day] = fechaPedidoInput.split('-');
+    fechaPedido = new Date(year, month - 1, day);
+    fechaPedido.setHours(12, 0, 0, 0); // Establecer hora del mediodía para evitar cambios de día
+} else {
+    fechaPedido = new Date(); // Usar fecha actual si no se especifica
+}
 
 const fechaFormateada = fechaPedido.toLocaleDateString('es-ES', {
         year: 'numeric',
@@ -2460,13 +2463,12 @@ const fechaFormateada = fechaPedido.toLocaleDateString('es-ES', {
         productos,
         total: total.toFixed(2),
         fecha: fechaPedido.toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }).replace(/\//g, '-'),
-        fechaCompleta: fechaPedido.toISOString()
-    }
-
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).replace(/\//g, '-'),
+    fechaCompleta: fechaPedido.toISOString()
+};
    
 
                 addToStore('pedidos', nuevoPedido)
@@ -2961,8 +2963,12 @@ function editOrderDate(pedidoId) {
 
         // Convertir la fecha almacenada al formato de input date (YYYY-MM-DD)
         const fechaCompleta = new Date(pedido.fechaCompleta);
-        const fechaInput = fechaCompleta.toISOString().split('T')[0];
-        document.getElementById('fechaPedido').value = fechaInput;
+// Ajustar por zona horaria
+fechaCompleta.setMinutes(fechaCompleta.getMinutes() + fechaCompleta.getTimezoneOffset());
+const fechaInput = fechaCompleta.toISOString().split('T')[0];
+document.getElementById('fechaPedido').value = fechaInput;
+
+       
 
         const nuevaFecha = prompt("Ingrese la nueva fecha (Formato: DD-MM-AAAA):", pedido.fecha);
         
@@ -3115,25 +3121,30 @@ function filterOrders(range) {
             }
 
             // Inicialización
-            document.addEventListener('DOMContentLoaded', function() {
-                initDB().then(() => {
-                    refreshOrdersView();
-                     document.getElementById('fechaPedido').value = new Date().toISOString().split('T')[0];
-                    
-                    // Configurar evento para el selector de datos
-                    document.getElementById('dataViewSelector').addEventListener('change', loadDataView);
-                    
-                    // Agregar un producto de ejemplo si no hay productos
-                    getAllFromStore('productos').then(productos => {
-                        if (productos.length === 0) {
-                            addProductRow("Laptop", 12000);
-                        }
-                    });
-                }).catch(error => {
-                    console.error("Error al inicializar la base de datos:", error);
-                    showToast("⚠️ Error al inicializar la base de datos", 'error');
-                });
-            });
+   document.addEventListener('DOMContentLoaded', function() {
+    initDB().then(() => {
+        refreshOrdersView();
+        
+        // Inicializar fecha actual en el campo de fecha
+        const today = new Date();
+        // Ajustar por zona horaria
+        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+        document.getElementById('fechaPedido').value = today.toISOString().slice(0, 10);
+        
+        // Configurar evento para el selector de datos
+        document.getElementById('dataViewSelector').addEventListener('change', loadDataView);
+        
+        // Agregar un producto de ejemplo si no hay productos
+        getAllFromStore('productos').then(productos => {
+            if (productos.length === 0) {
+                addProductRow("Laptop", 12000);
+            }
+        });
+    }).catch(error => {
+        console.error("Error al inicializar la base de datos:", error);
+        showToast("⚠️ Error al inicializar la base de datos", 'error');
+    });
+});
 
             // Cerrar modales al hacer clic fuera
             window.onclick = function(event) {
