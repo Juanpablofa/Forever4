@@ -473,7 +473,7 @@
                 <canvas id="salesChart"></canvas>
             </div>
             
-            <h3>📈 Top 15 Mejores Productos</h3>
+            <h3>📈 Top 15 Productos Que Mas Dinero Te Dieron</h3>
             <div class="table-responsive">
                 <table id="topProductsTable">
                     <thead>
@@ -487,7 +487,7 @@
                 </table>
             </div>
             
-            <h3>🏆 Mejores 15 Clientes</h3>
+            <h3>🏆 Mejores 15 Clientes Que Gastaron Mas Dinero</h3>
             <div class="table-responsive">
                 <table id="topClientsTable">
                     <thead>
@@ -501,7 +501,7 @@
                 </table>
             </div>
 <!-- Después de la tabla de Top Clientes por gasto -->
-<h3>🏆 Top 10 Clientes por Frecuencia</h3>
+<h3>🏆 Top 10 Clientes Que Mas Veces Compraron</h3>
 <div class="table-responsive">
     <table id="topFrequentClientsTable">
         <thead>
@@ -515,7 +515,7 @@
     </table>
 </div>
 
-<h3>📊 Top 10 Productos por Frecuencia</h3>
+<h3>📊 Top 10 Productos Mas Unidades Vendidas</h3>
 <div class="table-responsive">
     <table id="topFrequentProductsTable">
         <thead>
@@ -1112,49 +1112,52 @@
             function updateDashboard(period, specificDate = null) {
     currentPeriod = period;
     currentSpecificDate = specificDate || null;
-                
-                // Mostrar/ocultar selectores de fecha específica
-                document.getElementById('dateSelectorContainer').style.display = 'none';
-                document.getElementById('daySelector').style.display = 'none';
-                document.getElementById('weekSelector').style.display = 'none';
-                document.getElementById('monthSelector').style.display = 'none';
-                document.getElementById('yearSelector').style.display = 'none';
-                
-                if (period === 'day') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('daySelector').style.display = 'block';
-                } else if (period === 'week') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('weekSelector').style.display = 'block';
-                } else if (period === 'month') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('monthSelector').style.display = 'block';
-                } else if (period === 'year') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('yearSelector').style.display = 'block';
-                }
-                
-               updateSalesChart(period, specificDate);
+    
+    // Mostrar/ocultar selectores de fecha específica
+    document.getElementById('dateSelectorContainer').style.display = 'none';
+    document.getElementById('daySelector').style.display = 'none';
+    document.getElementById('weekSelector').style.display = 'none';
+    document.getElementById('monthSelector').style.display = 'none';
+    document.getElementById('yearSelector').style.display = 'none';
+    
+    if (period === 'day') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('daySelector').style.display = 'block';
+    } else if (period === 'week') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('weekSelector').style.display = 'block';
+    } else if (period === 'month') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('monthSelector').style.display = 'block';
+    } else if (period === 'year') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('yearSelector').style.display = 'block';
+    }
+    
+    updateSalesChart(period, specificDate);
     updateStats(period, specificDate);
-    updateTopProducts();
-    updateTopClients();
-    updateTopFrequentClients();  // Nueva función
-    updateTopFrequentProducts(); // Nueva función
+    updateTopProducts(period, specificDate);
+    updateTopClients(period, specificDate);
+    updateTopFrequentClients(period, specificDate);
+    updateTopFrequentProducts(period, specificDate);
 }
             
-            function updateSpecificPeriod(period) {
+           function updateSpecificPeriod(period) {
     currentPeriod = period;
     
     if (period === 'day') {
         const dayInput = document.getElementById('specificDay').value;
         if (dayInput) {
-            // Crear la fecha ajustando la zona horaria local
             const [year, month, day] = dayInput.split('-');
             currentSpecificDate = new Date(year, month - 1, day);
             currentSpecificDate.setHours(0, 0, 0, 0);
             
             updateSalesChart(period, currentSpecificDate);
             updateStats(period, currentSpecificDate);
+            updateTopProducts(period, currentSpecificDate);
+            updateTopClients(period, currentSpecificDate);
+            updateTopFrequentClients(period, currentSpecificDate);
+            updateTopFrequentProducts(period, currentSpecificDate);
         }
     } else if (period === 'week') {
         const weekInput = document.getElementById('specificWeek').value;
@@ -1163,6 +1166,10 @@
             currentSpecificDate = getDateOfWeek(parseInt(week), parseInt(year));
             updateSalesChart(period, currentSpecificDate);
             updateStats(period, currentSpecificDate);
+            updateTopProducts(period, currentSpecificDate);
+            updateTopClients(period, currentSpecificDate);
+            updateTopFrequentClients(period, currentSpecificDate);
+            updateTopFrequentProducts(period, currentSpecificDate);
         }
     } else if (period === 'month') {
         const monthInput = document.getElementById('specificMonth').value;
@@ -1171,6 +1178,10 @@
             currentSpecificDate = new Date(year, parseInt(month) - 1, 1);
             updateSalesChart(period, currentSpecificDate);
             updateStats(period, currentSpecificDate);
+            updateTopProducts(period, currentSpecificDate);
+            updateTopClients(period, currentSpecificDate);
+            updateTopFrequentClients(period, currentSpecificDate);
+            updateTopFrequentProducts(period, currentSpecificDate);
         }
     } else if (period === 'year') {
         const yearInput = document.getElementById('specificYear').value;
@@ -1178,11 +1189,12 @@
             currentSpecificDate = new Date(yearInput, 0, 1);
             updateSalesChart(period, currentSpecificDate);
             updateStats(period, currentSpecificDate);
+            updateTopProducts(period, currentSpecificDate);
+            updateTopClients(period, currentSpecificDate);
+            updateTopFrequentClients(period, currentSpecificDate);
+            updateTopFrequentProducts(period, currentSpecificDate);
         }
     }
-    
-    updateTopProducts();
-    updateTopClients();
 }
             
             function getDateOfWeek(week, year) {
@@ -1420,145 +1432,9 @@
                 });
             }
 
-            function updateTopProducts() {
-                const productSales = {};
-                
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
-                const request = store.getAll();
-                
-                request.onsuccess = function() {
-                    const pedidos = request.result || [];
-                    
-                    // Filtrar por período si es necesario
-                    let filteredPedidos = pedidos;
-                    if (currentSpecificDate) {
-                        const now = currentSpecificDate;
-                        filteredPedidos = pedidos.filter(p => {
-                            const pedidoDate = new Date(p.fechaCompleta);
-                            
-                            if (currentPeriod === 'day') {
-                                return pedidoDate.getDate() === now.getDate() && 
-                                       pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
-                            } else if (currentPeriod === 'week') {
-                                const startOfWeek = new Date(now);
-                                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                                const endOfWeek = new Date(startOfWeek);
-                                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                            } else if (currentPeriod === 'month') {
-                                return pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
-                            } else if (currentPeriod === 'year') {
-                                return pedidoDate.getFullYear() === now.getFullYear();
-                            }
-                            return true;
-                        });
-                    }
-                    
-                    filteredPedidos.forEach(pedido => {
-                        pedido.productos.forEach(producto => {
-                            if (!productSales[producto.producto]) {
-                                productSales[producto.producto] = {
-                                    quantity: 0,
-                                    total: 0
-                                };
-                            }
-                            productSales[producto.producto].quantity += producto.cantidad;
-                            productSales[producto.producto].total += producto.subtotal;
-                        });
-                    });
-                    
-                    const sortedProducts = Object.entries(productSales)
-                        .sort((a, b) => b[1].total - a[1].total)
-                        .slice(0, 15);
-                    
-                    const tbody = document.getElementById('topProductsBody');
-                    tbody.innerHTML = '';
-                    
-                    sortedProducts.forEach(([name, stats]) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${name}</td>
-                            <td>${stats.quantity}</td>
-                            <td>$${stats.total.toFixed(2)}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                };
-            }
-
-            function updateTopClients() {
-                const clientStats = {};
-                
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
-                const request = store.getAll();
-                
-                request.onsuccess = function() {
-                    const pedidos = request.result || [];
-                    
-                    // Filtrar por período si es necesario
-                    let filteredPedidos = pedidos;
-                    if (currentSpecificDate) {
-                        const now = currentSpecificDate;
-                        filteredPedidos = pedidos.filter(p => {
-                            const pedidoDate = new Date(p.fechaCompleta);
-                            
-                            if (currentPeriod === 'day') {
-                                return pedidoDate.getDate() === now.getDate() && 
-                                       pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
-                            } else if (currentPeriod === 'week') {
-                                const startOfWeek = new Date(now);
-                                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                                const endOfWeek = new Date(startOfWeek);
-                                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                            } else if (currentPeriod === 'month') {
-                                return pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
-                            } else if (currentPeriod === 'year') {
-                                return pedidoDate.getFullYear() === now.getFullYear();
-                            }
-                            return true;
-                        });
-                    }
-                    
-                    filteredPedidos.forEach(pedido => {
-                        if (!clientStats[pedido.cliente]) {
-                            clientStats[pedido.cliente] = {
-                                count: 0,
-                                total: 0
-                            };
-                        }
-                        
-                        clientStats[pedido.cliente].count++;
-                        clientStats[pedido.cliente].total += parseFloat(pedido.total);
-                    });
-                    
-                    const sortedClients = Object.entries(clientStats)
-                        .sort((a, b) => b[1].total - a[1].total)
-                        .slice(0, 15);
-                    
-                    const tbody = document.getElementById('topClientsBody');
-                    tbody.innerHTML = '';
-                    
-                    sortedClients.forEach(([name, stats]) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${name}</td>
-                            <td>${stats.count}</td>
-                            <td>$${stats.total.toFixed(2)}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                };
-            }
-
-function updateTopFrequentClients() {
-    const clientStats = {};
+            function updateTopProducts(period, specificDate = null) {
+    const productSales = {};
+    const now = specificDate || new Date();
     
     const transaction = db.transaction(['pedidos'], 'readonly');
     const store = transaction.objectStore('pedidos');
@@ -1567,34 +1443,95 @@ function updateTopFrequentClients() {
     request.onsuccess = function() {
         const pedidos = request.result || [];
         
-        // Filtrar por período si es necesario
-        let filteredPedidos = pedidos;
-        if (currentSpecificDate) {
-            const now = currentSpecificDate;
-            filteredPedidos = pedidos.filter(p => {
-                const pedidoDate = new Date(p.fechaCompleta);
-                
-                if (currentPeriod === 'day') {
-                    return pedidoDate.getDate() === now.getDate() && 
-                           pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'week') {
-                    const startOfWeek = new Date(now);
-                    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(startOfWeek.getDate() + 6);
-                    return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                } else if (currentPeriod === 'month') {
-                    return pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'year') {
-                    return pedidoDate.getFullYear() === now.getFullYear();
-                }
-                return true;
-            });
-        }
+        // Filtrar pedidos según el período seleccionado
+        const filteredPedidos = pedidos.filter(pedido => {
+            const pedidoDate = new Date(pedido.fechaCompleta);
+            
+            if (period === 'day') {
+                return pedidoDate.getDate() === now.getDate() && 
+                       pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'week') {
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
+            } else if (period === 'month') {
+                return pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'year') {
+                return pedidoDate.getFullYear() === now.getFullYear();
+            }
+            return true; // 'all' - no filtrar
+        });
         
-        // Contar frecuencia de compra
+        filteredPedidos.forEach(pedido => {
+            pedido.productos.forEach(producto => {
+                if (!productSales[producto.producto]) {
+                    productSales[producto.producto] = {
+                        quantity: 0,
+                        total: 0
+                    };
+                }
+                productSales[producto.producto].quantity += producto.cantidad;
+                productSales[producto.producto].total += producto.subtotal;
+            });
+        });
+        
+        const sortedProducts = Object.entries(productSales)
+            .sort((a, b) => b[1].total - a[1].total)
+            .slice(0, 15);
+        
+        const tbody = document.getElementById('topProductsBody');
+        tbody.innerHTML = '';
+        
+        sortedProducts.forEach(([name, stats]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>${stats.quantity}</td>
+                <td>$${stats.total.toFixed(2)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+}
+
+function updateTopClients(period, specificDate = null) {
+    const clientStats = {};
+    const now = specificDate || new Date();
+    
+    const transaction = db.transaction(['pedidos'], 'readonly');
+    const store = transaction.objectStore('pedidos');
+    const request = store.getAll();
+    
+    request.onsuccess = function() {
+        const pedidos = request.result || [];
+        
+        // Filtrar pedidos según el período seleccionado
+        const filteredPedidos = pedidos.filter(pedido => {
+            const pedidoDate = new Date(pedido.fechaCompleta);
+            
+            if (period === 'day') {
+                return pedidoDate.getDate() === now.getDate() && 
+                       pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'week') {
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
+            } else if (period === 'month') {
+                return pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'year') {
+                return pedidoDate.getFullYear() === now.getFullYear();
+            }
+            return true; // 'all' - no filtrar
+        });
+        
         filteredPedidos.forEach(pedido => {
             if (!clientStats[pedido.cliente]) {
                 clientStats[pedido.cliente] = {
@@ -1607,7 +1544,71 @@ function updateTopFrequentClients() {
             clientStats[pedido.cliente].total += parseFloat(pedido.total);
         });
         
-        // Ordenar por frecuencia (count) y limitar a 10
+        const sortedClients = Object.entries(clientStats)
+            .sort((a, b) => b[1].total - a[1].total)
+            .slice(0, 15);
+        
+        const tbody = document.getElementById('topClientsBody');
+        tbody.innerHTML = '';
+        
+        sortedClients.forEach(([name, stats]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>${stats.count}</td>
+                <td>$${stats.total.toFixed(2)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+}
+
+function updateTopFrequentClients(period, specificDate = null) {
+    const clientStats = {};
+    const now = specificDate || new Date();
+    
+    const transaction = db.transaction(['pedidos'], 'readonly');
+    const store = transaction.objectStore('pedidos');
+    const request = store.getAll();
+    
+    request.onsuccess = function() {
+        const pedidos = request.result || [];
+        
+        // Filtrar pedidos según el período seleccionado
+        const filteredPedidos = pedidos.filter(pedido => {
+            const pedidoDate = new Date(pedido.fechaCompleta);
+            
+            if (period === 'day') {
+                return pedidoDate.getDate() === now.getDate() && 
+                       pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'week') {
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
+            } else if (period === 'month') {
+                return pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'year') {
+                return pedidoDate.getFullYear() === now.getFullYear();
+            }
+            return true; // 'all' - no filtrar
+        });
+        
+        filteredPedidos.forEach(pedido => {
+            if (!clientStats[pedido.cliente]) {
+                clientStats[pedido.cliente] = {
+                    count: 0,
+                    total: 0
+                };
+            }
+            
+            clientStats[pedido.cliente].count++;
+            clientStats[pedido.cliente].total += parseFloat(pedido.total);
+        });
+        
         const sortedClients = Object.entries(clientStats)
             .sort((a, b) => b[1].count - a[1].count)
             .slice(0, 10);
@@ -1627,8 +1628,9 @@ function updateTopFrequentClients() {
     };
 }
 
-function updateTopFrequentProducts() {
+function updateTopFrequentProducts(period, specificDate = null) {
     const productStats = {};
+    const now = specificDate || new Date();
     
     const transaction = db.transaction(['pedidos'], 'readonly');
     const store = transaction.objectStore('pedidos');
@@ -1637,34 +1639,29 @@ function updateTopFrequentProducts() {
     request.onsuccess = function() {
         const pedidos = request.result || [];
         
-        // Filtrar por período si es necesario
-        let filteredPedidos = pedidos;
-        if (currentSpecificDate) {
-            const now = currentSpecificDate;
-            filteredPedidos = pedidos.filter(p => {
-                const pedidoDate = new Date(p.fechaCompleta);
-                
-                if (currentPeriod === 'day') {
-                    return pedidoDate.getDate() === now.getDate() && 
-                           pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'week') {
-                    const startOfWeek = new Date(now);
-                    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(startOfWeek.getDate() + 6);
-                    return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                } else if (currentPeriod === 'month') {
-                    return pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'year') {
-                    return pedidoDate.getFullYear() === now.getFullYear();
-                }
-                return true;
-            });
-        }
+        // Filtrar pedidos según el período seleccionado
+        const filteredPedidos = pedidos.filter(pedido => {
+            const pedidoDate = new Date(pedido.fechaCompleta);
+            
+            if (period === 'day') {
+                return pedidoDate.getDate() === now.getDate() && 
+                       pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'week') {
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
+            } else if (period === 'month') {
+                return pedidoDate.getMonth() === now.getMonth() && 
+                       pedidoDate.getFullYear() === now.getFullYear();
+            } else if (period === 'year') {
+                return pedidoDate.getFullYear() === now.getFullYear();
+            }
+            return true; // 'all' - no filtrar
+        });
         
-        // Contar frecuencia de venta por producto
         filteredPedidos.forEach(pedido => {
             pedido.productos.forEach(producto => {
                 if (!productStats[producto.producto]) {
@@ -1680,7 +1677,6 @@ function updateTopFrequentProducts() {
             });
         });
         
-        // Ordenar por frecuencia (count) y limitar a 10
         const sortedProducts = Object.entries(productStats)
             .sort((a, b) => b[1].count - a[1].count)
             .slice(0, 10);
@@ -1699,10 +1695,6 @@ function updateTopFrequentProducts() {
         });
     };
 }
-
-
-
-
 
 
             // ========== FUNCIONES DE IMPORTACIÓN/EXPORTACIÓN ========== //
