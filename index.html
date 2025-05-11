@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ingreso de Pedidos Forever</title>
+    <title>Sistema de Pedidos Forever</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -408,7 +408,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏪 Ingreso de Pedidos Forever Beauty</h1>
+        <h1>🏪 Sistema de Pedidos Forever</h1>
         
         <div class="button-group">
             <button onclick="openImportModal()" class="btn-secondary">📥 Importar Excel</button>
@@ -2384,61 +2384,79 @@ const fechaFormateada = fechaPedido.toLocaleDateString('es-ES', {
             }
 
             function updateOrder(id, nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas, productos, total) {
-                const transaction = db.transaction(['pedidos'], 'readwrite');
-                const store = transaction.objectStore('pedidos');
-                const getRequest = store.get(parseInt(id));
-                
-                getRequest.onsuccess = function() {
-                    const pedido = getRequest.result;
-                    if (!pedido) {
-                        showToast("⚠️ Pedido no encontrado", 'error');
-                        return;
-                    }
-                    
-                    const updatedPedido = {
-                        ...pedido,
-                        cliente: nombre,
-                        telefono,
-                        direccion,
-                        distrito,
-                        formaPago,
-                        tipoCliente,
-                        horarioEntrega,
-                        notas,
-                        productos,
-                        total: total.toFixed(2),
-                        fechaCompleta: new Date().toISOString()
-                    };
-                    
-                    const updateRequest = store.put(updatedPedido);
-                    
-                    updateRequest.onsuccess = function() {
-                        document.getElementById('orderForm').reset();
-                        document.getElementById('productBody').innerHTML = '';
-                        document.getElementById('totalPedido').textContent = "0.00";
-                        document.getElementById('editingOrderId').value = '';
-                        document.getElementById('cancelEditBtn').style.display = 'none';
-                        
-                        // Actualizar dashboard si está visible
-                        if (document.getElementById('dashboardSection').style.display === 'block') {
-                            updateDashboard(currentPeriod);
-                        }
-                        
-                        refreshOrdersView();
-                        showToast(`✅ Pedido #${id} actualizado correctamente`, 'success');
-                    };
-                    
-                    updateRequest.onerror = function(event) {
-                        console.error("Error al actualizar pedido:", event.target.error);
-                        showToast("⚠️ Error al actualizar pedido", 'error');
-                    };
-                };
-                
-                getRequest.onerror = function(event) {
-                    console.error("Error al obtener pedido:", event.target.error);
-                    showToast("⚠️ Error al obtener pedido", 'error');
-                };
+    const transaction = db.transaction(['pedidos'], 'readwrite');
+    const store = transaction.objectStore('pedidos');
+    const getRequest = store.get(parseInt(id));
+    
+    getRequest.onsuccess = function() {
+        const pedido = getRequest.result;
+        if (!pedido) {
+            showToast("⚠️ Pedido no encontrado", 'error');
+            return;
+        }
+        
+        // Obtener la fecha del formulario
+        const fechaPedidoInput = document.getElementById('fechaPedido').value;
+        let fechaPedido;
+        
+        if (fechaPedidoInput) {
+            // Ajustar la fecha para evitar problemas de zona horaria
+            const [year, month, day] = fechaPedidoInput.split('-');
+            fechaPedido = new Date(year, month - 1, day);
+            fechaPedido.setHours(12, 0, 0, 0); // Establecer hora del mediodía para evitar cambios de día
+        } else {
+            fechaPedido = new Date(); // Usar fecha actual si no se especifica
+        }
+
+        const updatedPedido = {
+            ...pedido,
+            cliente: nombre,
+            telefono,
+            direccion,
+            distrito,
+            formaPago,
+            tipoCliente,
+            horarioEntrega,
+            notas,
+            productos,
+            total: total.toFixed(2),
+            fecha: fechaPedido.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\//g, '-'),
+            fechaCompleta: fechaPedido.toISOString()
+        };
+        
+        const updateRequest = store.put(updatedPedido);
+        
+        updateRequest.onsuccess = function() {
+            document.getElementById('orderForm').reset();
+            document.getElementById('productBody').innerHTML = '';
+            document.getElementById('totalPedido').textContent = "0.00";
+            document.getElementById('editingOrderId').value = '';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            
+            // Actualizar dashboard si está visible
+            if (document.getElementById('dashboardSection').style.display === 'block') {
+                updateDashboard(currentPeriod);
             }
+            
+            refreshOrdersView();
+            showToast(`✅ Pedido #${id} actualizado correctamente`, 'success');
+        };
+        
+        updateRequest.onerror = function(event) {
+            console.error("Error al actualizar pedido:", event.target.error);
+            showToast("⚠️ Error al actualizar pedido", 'error');
+        };
+    };
+    
+    getRequest.onerror = function(event) {
+        console.error("Error al obtener pedido:", event.target.error);
+        showToast("⚠️ Error al obtener pedido", 'error');
+    };
+}
 
             function createNewOrder(nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas, productos, total) {
                 // Obtener la fecha del pedido
@@ -2493,64 +2511,75 @@ const fechaFormateada = fechaPedido.toLocaleDateString('es-ES', {
             }
 
             function editOrder(pedidoId) {
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
-                const request = store.get(parseInt(pedidoId));
-                
-                request.onsuccess = function() {
-                    const pedido = request.result;
-                    if (!pedido) {
-                        showToast("⚠️ Pedido no encontrado", 'error');
-                        return;
-                    }
+    const transaction = db.transaction(['pedidos'], 'readonly');
+    const store = transaction.objectStore('pedidos');
+    const request = store.get(parseInt(pedidoId));
+    
+    request.onsuccess = function() {
+        const pedido = request.result;
+        if (!pedido) {
+            showToast("⚠️ Pedido no encontrado", 'error');
+            return;
+        }
 
-                    // Llenar el formulario con los datos del pedido
-                    document.getElementById('nombre').value = pedido.cliente;
-                    document.getElementById('telefono').value = pedido.telefono;
-                    document.getElementById('distrito').value = pedido.distrito || '';
-                    document.getElementById('direccion').value = pedido.direccion;
-                    document.getElementById('formaPago').value = pedido.formaPago || 'Efectivo';
-                    document.getElementById('tipoCliente').value = pedido.tipoCliente || 'General';
-                    document.getElementById('horarioEntrega').value = pedido.horarioEntrega || '';
-                    document.getElementById('notas').value = pedido.notas || '';
-                    document.getElementById('editingOrderId').value = pedido.id;
-                    
-                    // Limpiar la tabla de productos
-                    const productBody = document.getElementById('productBody');
-                    productBody.innerHTML = '';
-                    
-                    // Agregar los productos del pedido
-                    pedido.productos.forEach(producto => {
-                        addProductRow(producto.producto, producto.precio, producto.cantidad);
-                    });
-                    
-                    // Actualizar el total
-                    document.getElementById('totalPedido').textContent = pedido.total;
-                    
-                    // Mostrar botón de cancelar edición
-                    document.getElementById('cancelEditBtn').style.display = 'inline-block';
-                    
-                    // Desplazarse al formulario
-                    document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
-                    
-                    showToast(`✏️ Editando pedido #${pedidoId}`, 'info');
-                };
-                
-                request.onerror = function(event) {
-                    console.error("Error al obtener pedido:", event.target.error);
-                    showToast("⚠️ Error al obtener pedido", 'error');
-                };
-            }
+        // Llenar el formulario con los datos del pedido
+        document.getElementById('nombre').value = pedido.cliente;
+        document.getElementById('telefono').value = pedido.telefono;
+        document.getElementById('distrito').value = pedido.distrito || '';
+        document.getElementById('direccion').value = pedido.direccion;
+        document.getElementById('formaPago').value = pedido.formaPago || 'Efectivo';
+        document.getElementById('tipoCliente').value = pedido.tipoCliente || 'General';
+        document.getElementById('horarioEntrega').value = pedido.horarioEntrega || '';
+        document.getElementById('notas').value = pedido.notas || '';
+        document.getElementById('editingOrderId').value = pedido.id;
+        
+        // Convertir la fecha almacenada al formato de input date (YYYY-MM-DD)
+        const fechaCompleta = new Date(pedido.fechaCompleta);
+        // Ajustar por zona horaria
+        const fechaInput = new Date(fechaCompleta.getTime() - (fechaCompleta.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        document.getElementById('fechaPedido').value = fechaInput;
+        
+        // Limpiar la tabla de productos
+        const productBody = document.getElementById('productBody');
+        productBody.innerHTML = '';
+        
+        // Agregar los productos del pedido
+        pedido.productos.forEach(producto => {
+            addProductRow(producto.producto, producto.precio, producto.cantidad);
+        });
+        
+        // Actualizar el total
+        document.getElementById('totalPedido').textContent = pedido.total;
+        
+        // Mostrar botón de cancelar edición
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+        
+        // Desplazarse al formulario
+        document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
+        
+        showToast(`✏️ Editando pedido #${pedidoId}`, 'info');
+    };
+    
+    request.onerror = function(event) {
+        console.error("Error al obtener pedido:", event.target.error);
+        showToast("⚠️ Error al obtener pedido", 'error');
+    };
+}
 
             function cancelEdit() {
-                document.getElementById('orderForm').reset();
-                document.getElementById('productBody').innerHTML = '';
-                document.getElementById('totalPedido').textContent = "0.00";
-                document.getElementById('editingOrderId').value = '';
-                document.getElementById('cancelEditBtn').style.display = 'none';
-document.getElementById('fechaPedido').value = '';
-                showToast("✖ Edición cancelada", 'info');
-            }
+    document.getElementById('orderForm').reset();
+    document.getElementById('productBody').innerHTML = '';
+    document.getElementById('totalPedido').textContent = "0.00";
+    document.getElementById('editingOrderId').value = '';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+    
+    // Restablecer la fecha actual
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    document.getElementById('fechaPedido').value = today.toISOString().slice(0, 10);
+    
+    showToast("✖ Edición cancelada", 'info');
+}
 
             function updateOrCreateClient(nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas) {
                 return new Promise((resolve, reject) => {
